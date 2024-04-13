@@ -9,7 +9,7 @@ import java.awt.GridBagConstraints;
  * Zapewnia wizualizację wprowadzania danych oraz prezentację wyników operacji matematycznych.
  */
 public class UserInterface extends JFrame {
-    private JTextField displayField;
+    private final JTextField displayField;
     /**
      * Konstruktor klasy UserInterface, inicjalizuje interfejs użytkownika, ustawiając odpowiednie parametry
      * okna oraz rozmieszczając elementy wewnątrz okna.
