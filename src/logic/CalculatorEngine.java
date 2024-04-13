@@ -278,9 +278,4 @@ public class CalculatorEngine {
             return false;
         }
     }
-
-    public static void main(String[] args) {
-        double result = calculate("12 + (3.45 - sin6) / cos78");
-        System.out.println("Wynik obliczeń: " + result);
-    }
 }

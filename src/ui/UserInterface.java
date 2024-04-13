@@ -1,40 +1,47 @@
 package ui;
-
+import logic.CalculatorEngine;
 import javax.swing.*;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
+/**
+ * Klasa UserInterface odpowiada za tworzenie graficznego interfejsu użytkownika dla kalkulatora.
+ * Zapewnia wizualizację wprowadzania danych oraz prezentację wyników operacji matematycznych.
+ */
 public class UserInterface extends JFrame {
-    private JTextField displayField; // Pole tekstowe dla wyświetlanego tekstu
-
+    private JTextField displayField;
+    /**
+     * Konstruktor klasy UserInterface, inicjalizuje interfejs użytkownika, ustawiając odpowiednie parametry
+     * okna oraz rozmieszczając elementy wewnątrz okna.
+     */
     public UserInterface() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridBagLayout()); // Ustawienie GridBagLayout jako menedżera układu
+        setLayout(new GridBagLayout());
 
-        // Konfiguracja dla JTextField
-        displayField = new JTextField("Wpisz liczbę: ");
-        displayField.setEditable(false); // Na razie pole nie będzie edytowalne
+
+        displayField = new JTextField();
+        displayField.setEditable(false);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = 5; // Rozciąga pole tekstowe na szerokość 5 kolumn
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rozciąga komponent poziomo
+        gbc.gridwidth = 5;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
         gbc.gridy = 0;
-        add(displayField, gbc); // Dodanie pola tekstowego z ustawieniami GridBagConstraints
+        add(displayField, gbc);
 
-        // Dodawanie przycisków
+
         addButtons();
 
-        pack(); // Dostosuj rozmiar okna do zawartości
-        setVisible(true); // Pokaż okno
+        pack();
+        setVisible(true);
     }
-
+    /**
+     * Metoda tworząca i dodająca przyciski do interfejsu użytkownika.
+     */
     private void addButtons() {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Dodanie funkcji matematycznych na górze
+
         String[] funcs = {"sin", "cos", "tan", "ln"};
         int gridxStart = 0;
         for (int i = 0; i < funcs.length; i++) {
@@ -44,7 +51,7 @@ public class UserInterface extends JFrame {
 
         }
 
-        // Dodanie przycisków numerycznych
+
         int btnNumber = 1;
         for (int row = 2; row <= 4; row++) {
             for (int col = 0; col < 3; col++) {
@@ -52,28 +59,34 @@ public class UserInterface extends JFrame {
             }
         }
 
-        // Dodanie pozostałych przycisków numerycznych
+
         addButtonWithText("00", 0, 5, gbc);
         addButtonWithText("0", 1, 5, gbc);
         addButtonWithText(".", 2, 5, gbc);
 
-        // Dodanie przycisków operacji z prawej strony
+
         String[] ops = {"/", "*", "-", "+", "="};
         addActionButtons(ops, 3, 2, gbc);
 
-        // Dodanie sqrt, (, ) pod cyframi
+
         String[] extras = {"sqrt", "(", ")"};
         int start = 0;
 
         for (int i = 0; i < extras.length; i++) {
             gbc.gridx = start + i;
             gbc.gridy = 6;
+            gbc.gridwidth = 1;
             addButtonWithText(extras[i], gbc.gridx, gbc.gridy, gbc);
 
         }
-        //addActionButtons(extras, 0, 5, gbc);
     }
-
+    /**
+     * Metoda dodająca przycisk z określonym tekstem w danym miejscu siatki.
+     * @param text Tekst wyświetlany na przycisku.
+     * @param gridx Pozycja kolumny w siatce.
+     * @param gridy Pozycja wiersza w siatce.
+     * @param gbc Konfiguracja położenia i rozmiaru przycisku.
+     */
     private void addButtonWithText(String text, int gridx, int gridy, GridBagConstraints gbc) {
         gbc.gridx = gridx;
         gbc.gridy = gridy;
@@ -81,17 +94,51 @@ public class UserInterface extends JFrame {
         button.addActionListener(e -> displayField.setText(displayField.getText() + text));
         add(button, gbc);
     }
+    /**
+     * Dodaje przycisk "Clear" do interfejsu użytkownika, który służy do czyszczenia pola tekstowego.
+     * Przycisk ten zajmuje jedną kolumnę i umieszczony jest na końcu wszystkich przycisków.
+     */
+    private void addClearButton(GridBagConstraints gbc) {
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 4;
+        JButton clearButton = new JButton("Clear");
+        clearButton.addActionListener(e -> displayField.setText(""));
+        add(clearButton, gbc);
+    }
 
+    /**
+     * Metoda dodająca grupę przycisków z etykietami, rozpoczynając od określonej pozycji.
+     * @param buttonLabels Tablica etykiet przycisków.
+     * @param gridxStart Początkowa pozycja kolumny w siatce dla grupy przycisków.
+     * @param gridyStart Początkowa pozycja wiersza w siatce dla grupy przycisków.
+     * @param gbc Konfiguracja położenia i rozmiaru przycisków.
+     */
     private void addActionButtons(String[] buttonLabels, int gridxStart, int gridyStart, GridBagConstraints gbc) {
         for (int i = 0; i < buttonLabels.length; i++) {
             gbc.gridx = gridxStart;
             gbc.gridy = gridyStart + i;
-            addButtonWithText(buttonLabels[i], gbc.gridx, gbc.gridy, gbc);
+            JButton button = new JButton(buttonLabels[i]);
+            if (buttonLabels[i].equals("=")) {
+                button.addActionListener(e -> processExpression(displayField.getText()));
+            } else {
+                button.addActionListener(e -> displayField.setText(displayField.getText() + button.getText()));
+            }
+            add(button, gbc);
+        }
+        addClearButton(gbc);
+    }
+    /**
+     * Metoda przetwarzająca wyrażenie matematyczne i wyświetlająca wynik w polu tekstowym.
+     * @param expression Wyrażenie matematyczne do obliczenia.
+     */
+    public void processExpression(String expression) {
+        try {
+            double result = CalculatorEngine.calculate(expression);
+            displayField.setText(String.valueOf(result));
+        } catch (Exception e) {
+            displayField.setText("Error");
         }
     }
 
-    public static void main(String[] args) {
-        JFrame.setDefaultLookAndFeelDecorated(true);
-        new UserInterface();
-    }
 }
